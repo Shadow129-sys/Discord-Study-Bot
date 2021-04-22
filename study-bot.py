@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 from database import *
 import schedule
 import time
+import config
 
 # List of Study Voice Channels in the server
 studyList = [
@@ -20,13 +21,25 @@ bot_image_url = "https://i.pinimg.com/564x/c9/4e/e1/c94ee183a2e635e5b8972bc0240a
 # Replace with your study text channel ID. Takes an integer.
 study_text_channel = 817450164234878987
 
+
 # Prints a message once bot becomes ready
-
-
 @client.event
 async def on_ready():
     await client.change_presence(activity=discord.Game("+help"))
     print(f'{client.user} is running')
+    reset.start()
+
+
+# Resets leaderboards everyday.
+@tasks.loop(minutes=60)
+async def reset():
+    now = datetime.datetime.now(timezone('Asia/Kolkata'))
+    if now.hour == 0:
+        resetDaily()
+        if now.weekday() == 0:
+            resetWeekly()
+        if now.day == 1:
+            resetMonthly()
 
 
 # Shows the ping (in mili-seconds) of the bot
@@ -232,26 +245,5 @@ async def on_voice_state_update(member, before, after):
         end(member)
 
 
-# Fetches token for Discord API
-def read_token():
-    with open("token.txt", "r") as f:
-        lines = f.readlines()
-        return lines[0].strip()
-
-
 if __name__ == "__main__":
-    client.run(read_token())
-
-    # Schedules daily, weekly and monthly reset
-    schedule.every().monday.do(resetWeekly)
-    schedule.every().monday.do(resetDaily)
-    schedule.every().tuesday.do(resetDaily)
-    schedule.every().wednesday.do(resetDaily)
-    schedule.every().thursday.do(resetDaily)
-    schedule.every().friday.do(resetDaily)
-    schedule.every().saturday.do(resetDaily)
-    schedule.every().sunday.do(resetDaily)
-    schedule.every().day.do(resetMonthly)
-    while True:
-        schedule.run_pending()
-        time.sleep(600)
+    client.run(config.discordToken)

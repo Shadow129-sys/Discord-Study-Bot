@@ -3,13 +3,13 @@ import discord
 from pymongo import MongoClient
 import datetime
 from pytz import timezone
+import config
 
 
-cluster = MongoClient(
-    "Replace this with your MongoDB client link")
+cluster = MongoClient(config.mongoClient)
 
-db = cluster["Replace with your cluster name"]
-collection = db["Replace with your collection name"]
+db = cluster[config.clusterName]
+collection = db[config.collectionName]
 
 
 def daily_leaderboard():
@@ -46,20 +46,17 @@ def member_details(member_id):
 
 # Resets daily time of all members
 def resetDaily():
-    collection.update({}, {"$set": {"dailyTime": 0}})
+    collection.update_many({}, {"$set": {"dailyTime": 0}})
 
 
 # Resets weekly time of all members
 def resetWeekly():
-    collection.update({}, {"$set": {"weeklyTime": 0}})
+    collection.update_many({}, {"$set": {"weeklyTime": 0}})
 
 
 # Resets monthly time of all members
 def resetMonthly():
-    now = datetime.datetime.now(timezone('Asia/Kolkata'))
-    if int(now.day) != 1:
-        return
-    collection.update({}, {"$set": {"monthlyTime": 0}})
+    collection.update_many({}, {"$set": {"monthlyTime": 0}})
 
 
 # Updates total Study time for members when they leave.
